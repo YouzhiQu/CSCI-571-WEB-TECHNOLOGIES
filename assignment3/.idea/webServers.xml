@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="65f68574-38ab-450f-b8c2-4f963e28cc8b" name="cs.usc" url="http://cs-server.usc.edu">
+        <fileTransfer host="cs-server.usc.edu" port="22" rootFolder="/home/scf-01/chen035/public_html/assignment3" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

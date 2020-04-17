@@ -1,0 +1,312 @@
+
+body {
+    margin: 0 0 0 0;
+    overflow-x: hidden;
+}
+
+.second-h1 {
+    margin-top: 0;
+    margin-left: 10px;
+}
+
+.address-label {
+    left: 150px;
+    top: 28px;
+    margin: 0 0 0 0;
+    position: relative;
+    font-family: sans-serif;
+    font-size: 13px;
+    color: #555353;
+}
+
+#title {
+    font-size: 55px;
+    font-family: sans-serif;
+    color: #b5914e;
+    position: relative;
+    font-weight: normal;
+    letter-spacing: 10px;
+    text-align: center;
+    margin: 23px 0 51px 0;
+}
+
+
+#tabs-container {
+    width: 100%;
+    bottom: 0;
+    border-top: 0.01em gray ridge;
+    position: relative;
+    text-align: center;
+    height: 45px;
+    background-color: white;
+}
+
+#tabs-container ul {
+    padding-left: 0;
+    position: absolute;
+    width: 1000px;
+    left: 7%;
+}
+
+#tabs-container .tab {
+    display: inline-table;
+    position: relative;
+}
+
+#tabs-container .tab a {
+    text-decoration: none;
+    margin: 0 65px 0 65px;
+    font-family: sans-serif;
+    font-size: 15px;
+}
+
+#home-tab{
+    color: #b5914e;
+}
+
+#vision-tab, #menu-tab, #order-tab, #contact-tab {
+    color: #555353;
+}
+
+.subtitle {
+    margin: 0 0 15px 0;
+}
+
+.subtitle p{
+    color: #b5914e;
+    font-family: serif;
+    font-style: italic;
+    font-size: 35px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin: 0 0 0 0;
+}
+
+.content {
+    margin: 0 0 10px 0;
+}
+
+.content p {
+    font-family: sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    padding: 0 0 5px 0;
+    color: #5e5354;
+}
+
+.read-more {
+    font-family: sans-serif;
+    color: #2a2a2a;
+    float: left;
+    text-decoration: none;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.read-more:hover {
+    color: lightgray;
+}
+
+.component {
+    width: 100%;
+    position: relative;
+}
+
+#first-component {
+    background-color: white;
+}
+
+#second-component {
+    height:650px;
+    position: relative;
+}
+
+#image6 {
+    position: fixed;
+    z-index: -1;
+    clip: rect(0px,855px,450px,200px);
+    left: 55px;
+    top: 300px;
+    transform: scale(1.8);
+}
+
+
+/* Third Component*/
+
+#third-component {
+    height: auto;
+    text-align: center;
+    background-color: white;
+}
+
+#third-component-first-col {
+    display: inline-block;
+    margin-left: 45px;
+}
+
+#third-component-second-col {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 35px;
+}
+
+.third-component-col {
+    display: inline-block;
+}
+
+#restaurant-intro {
+    width: 448px;
+    height: 300px;
+    display: block;
+    border: solid transparent 15px;
+    margin-top: 30px;
+}
+
+#food-from-local-vendors {
+    width: 448px;
+    height: 250px;
+    display: block;
+    padding-top: 30px;
+}
+
+#restaurant-intro p, h6{
+    text-align: left;
+    margin: 0 0 0 0;
+}
+
+
+#restaurant-intro h6 {
+    font-family: sans-serif;
+    font-weight: normal;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+#food-from-local-vendors p{
+    text-align: left;
+    margin: 0 0 0 0;
+}
+
+.attached-image {
+    display: block;
+    margin-bottom: 45px;
+}
+
+#image1 {
+    position: relative;
+    vertical-align: top;
+}
+
+#image2 {
+    position: relative;
+}
+
+#image3 {
+    margin-top: 125px;
+    position: relative;
+}
+
+#image4 {
+    position: relative;
+}
+
+/* Order Online */
+#order-online-container {
+    display: inline-block;
+    position: relative;
+    height: 603px;
+    width: 929px;
+}
+
+#order-online-img {
+    z-index: -1;
+}
+
+#order-online-entity {
+    position: absolute;
+    height: 140px;
+    width: 390px;
+    top: 225px;
+    left: 270px;
+    background-color: white;
+}
+
+#order-online-entity p {
+    position: relative;
+    text-align: center;
+    font-size: 11px;
+    color: #565454;
+    margin: 45px 0 5px 0;
+    letter-spacing: 1px;
+    -webkit-transform:scale(1.1,1);
+    -moz-transform:scale(1.1,1);
+    transform: scale(1.1,1);
+}
+
+#order-online-entity a{
+    font-size: 30px;
+    text-decoration: none;
+    color: #555353;
+    letter-spacing: 1px;
+    display:inline-block;
+    -webkit-transform:scale(1.1,1);
+    -moz-transform:scale(1.1,1);
+    transform: scale(1.1,1);
+    transition: 0.2s;
+}
+
+#order-online-entity a:hover {
+    color: lightgray;
+}
+
+#reservations-msg {
+    position: relative;
+    padding: 55px 0 70px 0;
+    text-align: center;
+    background-color: white;
+}
+
+#reservations-msg h6{
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: lighter;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+/* Forth Component */
+#forth-component {
+    background: white url("http://cs-server.usc.edu:45678/hw/hw3/images/image5.jpg")
+    no-repeat fixed;
+    height: 480px;
+    background-size: 1206px 1250px;
+    background-position: 0px 0;
+}
+
+/*Fifth Component*/
+#fifth-component {
+    background-color: #b49053;
+    height: 215px;
+}
+
+#foot-msg {
+    position: absolute;
+    right: 173px;
+    top: 50px;
+}
+
+#foot-msg p {
+    margin: 0 0 0 0;
+    color: #ffffff;
+    font-size: 12px;
+    font-family: sans-serif;
+    letter-spacing: 0.9px;
+}
+
+/* footer */
+#footer {
+    position: relative;
+    height: 40px;
+    width: 100%;
+    background-color: white;
+}

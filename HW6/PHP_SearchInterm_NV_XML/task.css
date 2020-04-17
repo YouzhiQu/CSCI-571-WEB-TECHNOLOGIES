@@ -1,0 +1,10 @@
+pre {
+	font-family: Courier New, Courier, mono;
+	background-color: #DFEFFF;
+	border: 0px;
+	margin-left: 0;
+}
+
+pre.indent {
+	margin-left:		 		60px;
+}

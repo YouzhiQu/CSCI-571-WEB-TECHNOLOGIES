@@ -1,0 +1,542 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="AUTHOR" content="eBay API Documentation Team">
+<link rel="StyleSheet" href="API.css" type="text/css">
+<link rel="StyleSheet" href="task.css" type="text/css">
+
+<title>Intermediate Search: Specifying Detailed XML Results in a Shopping API GET Request</title>
+
+</head>
+<body>
+
+<a name="_top_"></a>
+<h1>Using Advanced Search<br>
+<small>Specifying XML Results with an HTTP GET Request</small></h1>
+
+<p><a href="PHP_SearchInterm_NV_XML.zip">Complete Code</a></p>
+
+<p>This tutorial shows how to use the eBay Finding API to perform complex searches. Specifically, you use PHP to write a keyword-based findItemsAdvanced GET request to search for eBay listings and display the results in three price ranges. You specify that the response to your call is formatted as XML, and that the browser displays the results in an HTML table.</p>
+
+<p>If the links you present to users (after making these calls) include affiliate tracking information,
+as described in this tutorial, you can earn commissions from eBay. To get an affiliate tracking number, go to <a href="https://www.ebaypartnernetwork.com" target="_blank">eBay Partner Network</a>. For notes about the tutorial, please see <a href="#next">Notes and Next Steps</a>. For additional resources, please see <a href="#AdditionalResources">Additional Resources</a>.  </p>
+
+<p> When you complete the tutorial, you will have created an application that returns results like this:</p>
+
+<p><img src="PHP_SearchInterm_NV_XML.gif" alt="Simple search code"></p>
+
+<p>The keyword "ipod" returns items in three bands (the three price ranges specified in the request) that map neatly to different types of Ipods at different price levels. </p>
+<p>The first band, the cheapest price range, tends to capture accessories and Ipod nanos. The second band, the middle price range, tends to return mid-range Ipods. The third band tends to return top-drawer Ipods with generous storage capacity and special features. </p>
+<p>If the three-price-range search were applied to a book search, an author's name might return items in a similar array: cheap editions in the first range, hardcovers in good condition in the second, and in the third collectible-quality items such as first editions and signed copies. </p>
+<p>This kind of search can give a snapshot to market price patterns for items that can be grouped by keywords.</p>
+
+<p>There are two main steps in this tutorial:</p>
+
+<blockquote>
+<p><a href="#step1"><b>Step 1: Set up the findItemsAdvanced call</b></a></p>
+<p><a href="#step2"><b>Step 2: Add code to make the call and display the response</b></a></p>
+<p><a href="#step3"><b>Step 3: Run the code</b></a></p>
+</blockquote>
+
+<p>The code you write in this tutorial is included in the file FindItemsAdvanced.php, which is contained in <a href="PHP_SearchInterm_NV_XML.zip">PHP_SearchInterm_NV_XML.zip</a>, along with the auxiliary files used by the application, which include display functions and the jQuery JavaScript library. The search returns live production data.</p>
+
+<hr>
+
+<h2>Prerequisites</h2>
+
+<ol>
+
+<li>Please <a href="http://developer.ebay.com/join" target="_blank">join the eBay Developers Program</a>. <strong>Note the Production AppID that you receive when you join</strong>. It is required to make eBay Shopping API calls. Substitute your Production AppID in this tutorial where the code says "MyAppID." Note that your Production AppID is not the same as your eBay user ID.</li>
+
+<li>Please install <a href="http://httpd.apache.org/download.cgi">Apache HTTP Server</a>.</li>
+
+<li>Please install <a href="http://php.net">PHP 5</a>. PHP 5 includes the <a href="http://www.php.net/manual/en/ref.simplexml.php" target="_blank">SimpleXML extension</a>. The PHP sample file you download with this tutorial will be stored in the htdocs folder of your Apache 2.2 installation (such as C:\Program Files\Apache Software Foundation\Apache2.2\htdocs).</li>
+
+</ol>
+
+<a name="step1"></a>
+<h2>Step 1: Set up the findItemsAdvanced call</h2>
+
+<p>In this step, you put two folders and one file into your htdocs folder. You also create your main PHP file and add some text to create the HTML that will display in the browser of a user of this application.</p>
+
+
+<ol>
+
+<li><strong>Copy two folders and one file to htdocs.</strong> After you download the complete code in <a href="PHP_SearchInterm_NV_XML.zip">PHP_SearchInterm_NV_XML.zip</a>, copy the js and css folders to the htdocs folder of your Apache 2.2 installation (say, C:\Program Files\Apache Software Foundation\Apache2.2\htdocs).</li>
+
+<li><strong>Create a file with the following text. </strong>
+
+
+<pre>
+&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"&gt;
+
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"&gt;
+&lt;head&gt;
+&lt;meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"&gt;
+&lt;title&gt;findItemsAdvanced&lt;/title&gt;
+&lt;script src="./js/jQuery.js"&gt;&lt;/script&gt;
+&lt;script src="./js/jQueryUI/ui.tablesorter.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+    $(document).ready(function() {
+        $("table").tablesorter({
+            sortList:[[7,0],[4,0]],      // upon screen load, sort by col 7, 4 ascending (0)
+            debug: false,                // if true, useful to debug Tablesorter issues
+            headers: {
+                0: { sorter: false },    // col 0 = first = left most column - no sorting
+                5: { sorter: false },
+                6: { sorter: false },
+                7: { sorter: 'text'}     // specify text sorter, otherwise mistakenly takes shortDate parser
+            }
+        });
+    });
+&lt;/script&gt;
+
+
+
+&lt;/head&gt;
+&lt;body&gt;
+
+
+&lt;link rel="stylesheet" href="./css/flora.all.css" type="text/css" media="screen" title="Flora (Default)"&gt;
+
+&lt;form action="FindItemsAdvanced.php" method="post"&gt;
+&lt;table cellpadding="2" border="0"&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Query&lt;/th&gt;
+    &lt;th&gt;Site to Search&lt;/th&gt;
+    &lt;th&gt;Max Price&lt;/th&gt;
+    &lt;th&gt;Items per range&lt;/th&gt;
+    &lt;th&gt;Debug&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;&lt;input type="text" name="Query" value="ipod"&gt;&lt;/td&gt;
+    &lt;td&gt;
+    &lt;select name="GlobalID"&gt;
+      &lt;option value="EBAY-AU"&gt;Australia - EBAY-AU - AUD&lt;/option&gt;
+      &lt;option value="EBAY-ENCA"&gt;Canada (English) - EBAY-ENCA - CAD&lt;/option&gt;
+      &lt;option value="EBAY-DE"&gt;Germany - EBAY-DE - EUR&lt;/option&gt;
+      &lt;option value="EBAY-GB"&gt;United Kingdom - EBAY-GB - GBP&lt;/option&gt;
+      &lt;option value="EBAY-US"&gt;United States - EBAY-US - USD&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/td&gt;
+    &lt;td&gt;&lt;input type="text" name="MaxPrice" value="500"&gt;&lt;/td&gt;
+    &lt;td&gt;
+    &lt;select name="ItemsPerRange"&gt;
+      &lt;option value="1"&gt;1&lt;/option&gt;
+      &lt;option value="2"&gt;2&lt;/option&gt;
+      &lt;option selected value="3"&gt;3&lt;/option&gt;
+      &lt;option value="4"&gt;4&lt;/option&gt;
+      &lt;option value="5"&gt;5&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/td&gt;
+    &lt;td&gt;
+    &lt;select name="Debug"&gt;
+      &lt;option value="1"&gt;true&lt;/option&gt;
+      &lt;option selected value="0"&gt;false&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td colspan="2" align="center"&gt;&lt;INPUT type="submit" name="submit" value="Search"&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+&lt;/form&gt;
+</pre>
+</li>
+
+<li>Save as FindItemsAdvanced.php in the htdocs folder of your Apache 2.2 installation.</li>
+
+
+<br>
+
+
+<li><strong>Review the values you will use in your call.</strong> The following table contains the values you will use for your findItemsAdvanced call.</li>
+
+<br>
+
+<table>
+<tr>
+<th>Standard Parameter&nbsp;&nbsp;&nbsp;&nbsp;</th>
+<th>Sample Value</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>appid</td>
+<td>MyAppID</td>
+<td>The appid you obtain by <a href="http://developer.ebay.com/join" target="_blank">joining the
+eBay Developers Program</a>. </td>
+</tr>
+<tr>
+<td>version</td><td>537</td><td>The API version that your application supports.</td>
+</tr>
+<tr>
+<td>siteid</td>
+<td>0</td>
+<td>The <a href="http://developer.ebay.com/DevZone/shopping/docs/CallRef/types/SiteCodeType.html">numeric value</a> for the eBay site with the items you want information about. The site ID of the US site is 0.</td>
+</tr>
+<tr>
+<td>callname</td>
+<td>findItemsAdvanced</td>
+<td>The name of the call you are using.</td>
+</tr>
+<tr>
+<td>responseencoding</td>
+<td>XML</td>
+<td>Specifies an encoding format for the response.</td>
+</tr>
+<tr>
+<td>QueryKeywords</td><td>ipod</td><td>Search terms.</td>
+</tr>
+<tr>
+<td>ItemSort</td><td>BestMatch</td><td></td>
+</tr>
+<tr>
+<td>IncludeSelector</td><td>SearchDetails</td><td></td>
+</tr>
+<tr>
+<td>trackingpartnercode</td><td>1</td>Affiliate information.<td>
+</tr>
+<tr>
+<td>trackingid</td><td>123</td><td>Affiliate information.</td>
+</tr>
+<tr>
+<td>affiliateuserid</td><td>456</td><td>Affiliate information.</td>
+</tr>
+
+</table>
+<br>
+<table>
+<tr>
+<th>Call-Specific Value</th>
+<th>Sample Value</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>QueryKeywords</td>
+<td>ipod</td>
+<td>Specifies a search string.</td>
+</tr>
+<tr>
+<td>MaxEntries</td>
+<td>6</td>
+<td>Integer that specifies maximum number of items to return.</td>
+</tr>
+<tr>
+<td>ItemSort</td>
+<td>BestMatch</td>
+<td>A value that sets the sort order of the results.</td>
+</tr>
+<tr>
+<td>ItemType</td>
+<td>FixedPricedItem</td>
+<td>Item filter based on type of listing.</td>
+</tr>
+<tr>
+<td>PriceMin.Value and PriceMax.Value</td><td>0 and 500</td><td>Defines the overall price range.</td>
+</tr>
+</tr>
+</table>
+<br>
+</li>
+
+<li><b>Add the following PHP function to your code, directly after <code>&lt;/form&gt;</code>.</b> This function will construct your FindItemsAdvanced call. This is where you specify the values for the site, the response encoding, the type of query, the site ID, the maximum number of entries in the return, and the price ranges.</li>
+
+<pre>
+
+&lt;?php
+
+require_once('DisplayUtils.php');  // functions to aid with display of information
+
+error_reporting(E_ALL);  // turn on all errors, warnings and notices for easier debugging
+
+$results = '';
+
+if(isset($_POST['Query']))
+{
+
+  $endpoint = 'http://svcs.ebay.com/services/search/FindingService/v1';  // URL to call
+  $responseEncoding = 'XML';   // Format of the response
+
+  $safeQuery = urlencode (utf8_encode($_POST['Query']));
+  $site  = $_POST['GlobalID'];
+
+  $priceRangeMin = 0.0;
+  $priceRangeMax = $_POST['MaxPrice'];
+  $itemsPerRange = $_POST['ItemsPerRange'];
+  $debug = (boolean) $_POST['Debug'];
+
+  $rangeArr = array('Low-Range', 'Mid-Range', 'High-Range');
+
+  $priceRange = ($priceRangeMax - $priceRangeMin) / 3;  // find price ranges for three tables
+  $priceRangeMin =  sprintf("%01.2f", 0.00);
+  $priceRangeMax = $priceRangeMin;  // needed for initial setup
+
+  foreach ($rangeArr as $range)
+  {
+    $priceRangeMax = sprintf("%01.2f", ($priceRangeMin + $priceRange));
+    $results .=  "&lt;h2&gt;$range : $priceRangeMin ~ $priceRangeMax&lt;/h2&gt;";
+    // Construct the FindItems call
+    $apicall = "$endpoint?OPERATION-NAME=findItemsAdvanced"
+         . "&SERVICE-VERSION=1.0.0"
+         . "&GLOBAL-ID=$site"
+         . "&SECURITY-APPNAME=YOUR_APP_ID"
+         . "&keywords=$safeQuery"
+         . "&paginationInput.entriesPerPage=$itemsPerRange"
+         . "&sortOrder=BestMatch"
+         . "&itemFilter(0).name=ListingType"
+         . "&itemFilter(0).value=FixedPrice"
+         . "&itemFilter(1).name=MinPrice"
+         . "&itemFilter(1).value=$priceRangeMin"
+         . "&itemFilter(2).name=MaxPrice"
+         . "&itemFilter(2).value=$priceRangeMax"
+         . "&affiliate.networkId=9"  // fill in your information in next 3 lines
+         . "&affiliate.trackingId=1234567890"
+         . "&affiliate.customId=456"
+         . "&RESPONSE-DATA-FORMAT=$responseEncoding";
+
+    if ($debug) {
+      print "GET call = $apicall &lt;br&gt;";  // see GET request generated
+    }
+	</pre>
+</li>
+<br>
+
+
+
+<hr>
+<p><a href="#_top_">Back to Top</a></p>
+
+<a name="step2"></a><h2>Step 2: Add code to load the call and display the response</h2>
+
+<p>In this step you:</p>
+<ul>
+<li>Add code to make the call</li>
+<li>Add code and a helper file to display the items returned.</li>
+</ul>
+<p>As described in Step 1, the URL used for the Shopping API call in this tutorial is <a href="http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsAdvanced&SERVICE-VERSION=1.0.0&GLOBAL-ID=EBAY-AU&SECURITY-APPNAME=YOUR_APP_ID&keywords=ipod&paginationInput.entriesPerPage=3&sortOrder=BestMatch&itemFilter(0).name=ListingType&itemFilter(0).value=FixedPrice&itemFilter(1).name=MinPrice&itemFilter(1).value=0.00&itemFilter(2).name=MaxPrice&itemFilter(2).value=166.67&affiliate.networkId=9&affiliate.trackingId=1234567890&affiliate.customId=456&RESPONSE-DATA-FORMAT=XML
+" target="_blank">http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsAdvanced&SERVICE-VERSION=1.0.0&GLOBAL-ID=EBAY-AU&SECURITY-APPNAME=YOUR_APP_ID&keywords=ipod&paginationInput.entriesPerPage=3&sortOrder=BestMatch&itemFilter(0).name=ListingType&itemFilter(0).value=FixedPrice&itemFilter(1).name=MinPrice&itemFilter(1).value=0.00&itemFilter(2).name=MaxPrice&itemFilter(2).value=166.67&affiliate.networkId=9&affiliate.trackingId=1234567890&affiliate.customId=456&RESPONSE-DATA-FORMAT=XML</a>.</p>
+
+<p>The <code>responseencoding=XML</code> parameter specifies that the response data will be in XML format.</p>
+
+<ol>
+<li><b>In FindItemsAdvanced.php, after the last line above (where <code>$endpoint</code> is set to a URL value),
+add the following code: </b>
+
+<p>Add the code that constructs the layout of the FindItemsAdvanced call and specifies the results to display. </p>
+
+	<pre>
+    // Load the call and capture the document returned by the Finding API
+    $resp = simplexml_load_file($apicall);
+
+    // Check to see if the response was loaded, else print an error
+    // Probably best to split into two different tests, but have as one for brevity
+    if ($resp && $resp-&gt;paginationOutput-&gt;totalEntries &gt; 0) {
+      $results .= 'Total items : ' . $resp-&gt;paginationOutput-&gt;totalEntries . "&lt;br /&gt;";
+      $results .= '&lt;table id="example" class="tablesorter" border="0" cellpadding="0" cellspacing="1"&gt;';
+      $results .= "&lt;thead&gt;&lt;tr&gt;&lt;th /&gt;&lt;th&gt;Title&lt;/th&gt;&lt;th&gt;Price &nbsp; &nbsp; &lt;/th&gt;&lt;th&gt;Shipping &nbsp; &nbsp; &lt;/th&gt;&lt;th&gt;Total &nbsp; &nbsp; &lt;/th&gt;&lt;th&gt;&lt;!--Currency--&gt;&lt;/th&gt;&lt;th&gt;Time Left&lt;/th&gt;&lt;th&gt;End Time&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;";
+
+      // If the response was loaded, parse it and build links
+      foreach($resp-&gt;searchResult-&gt;item as $item) {
+        if ($item-&gt;galleryURL) {
+          $picURL = $item-&gt;galleryURL;
+        } else {
+          $picURL = "http://pics.ebaystatic.com/aw/pics/express/icons/iconPlaceholder_96x96.gif";
+        }
+        $link  = $item-&gt;viewItemURL;
+        $title = $item-&gt;title;
+
+        $price = sprintf("%01.2f", $item-&gt;sellingStatus-&gt;convertedCurrentPrice);
+        $ship  = sprintf("%01.2f", $item-&gt;shippingInfo-&gt;shippingServiceCost);
+        $total = sprintf("%01.2f", ((float)$item-&gt;sellingStatus-&gt;convertedCurrentPrice
+                      + (float)$item-&gt;shippingInfo-&gt;shippingServiceCost));
+
+        // Determine currency to display - so far only seen cases where priceCurr = shipCurr, but may be others
+        $priceCurr = (string) $item-&gt;sellingStatus-&gt;convertedCurrentPrice['currencyId'];
+        $shipCurr  = (string) $item-&gt;shippingInfo-&gt;shippingServiceCost['currencyId'];
+        if ($priceCurr == $shipCurr) {
+          $curr = $priceCurr;
+        } else {
+          $curr = "$priceCurr / $shipCurr";  // potential case where price/ship currencies differ
+        }
+
+        $timeLeft = getPrettyTimeFromEbayTime($item-&gt;sellingStatus-&gt;timeLeft);
+        $endTime = strtotime($item-&gt;listingInfo-&gt;endTime);   // returns Epoch seconds
+        $endTime = $item-&gt;listingInfo-&gt;endTime;
+
+
+        $results .= "&lt;tr&gt;&lt;td&gt;&lt;a href=\"$link\"&gt;&lt;img src=\"$picURL\"&gt;&lt;/a&gt;&lt;/td&gt;&lt;td&gt;&lt;a href=\"$link\"&gt;$title&lt;/a&gt;&lt;/td&gt;"
+             .  "&lt;td&gt;$price&lt;/td&gt;&lt;td&gt;$ship&lt;/td&gt;&lt;td&gt;$total&lt;/td&gt;&lt;td&gt;$curr&lt;/td&gt;&lt;td&gt;$timeLeft&lt;/td&gt;&lt;td&gt;&lt;nobr&gt;$endTime&lt;/nobr&gt;&lt;/td&gt;&lt;/tr&gt;";
+      }
+      $results .= "&lt;/table&gt;";
+    }
+    // If there was no response, print an error
+    else {
+      $results = "&lt;p&gt;&lt;i&gt;&lt;b&gt;No items found&lt;b&gt;&lt;/i&gt;&lt;/p&gt;";
+    }
+    $priceRangeMin = $priceRangeMax; // set up for next iteration
+  } // foreach
+
+} // if
+
+
+?&gt;
+
+
+&lt;?php echo $results;?&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+</pre>
+</li>
+
+<li><strong>Add an auxiliary PHP file to improve display.</strong></li>
+<p>Create (or copy from the <a href="PHP_SearchInterm_NV_XML.zip">PHP_SearchInterm_NV_XML.zip</a> file) a separate file named DisplayUtils.php. This file contains a pair of convenience functions that prettify the display of the results. The functions are not needed to make the FindItemsAdvanced call. The DisplayUtils.php file is "required" in FindItemsAdvanced.php merely to access the convenience functions.
+</p>
+
+<pre>
+&lt;?php
+
+date_default_timezone_set('GMT');
+
+function getPrettyTimeFromEbayTime($eBayTimeString){
+    // Input is of form 'PT12M25S'
+    $matchAry = array(); // initialize array which will be filled in preg_match
+    $pattern = "#P([0-9]{0,3}D)?T([0-9]?[0-9]H)?([0-9]?[0-9]M)?([0-9]?[0-9]S)#msiU";
+    preg_match($pattern, $eBayTimeString, $matchAry);
+
+    $days  = (int) $matchAry[1];
+    $hours = (int) $matchAry[2];
+    $min   = (int) $matchAry[3];    // $matchAry[3] is of form 55M - cast to int
+    $sec   = (int) $matchAry[4];
+
+    $retnStr = '';
+    if ($days)  { $retnStr .= "$days day"    . pluralS($days);  }
+    if ($hours) { $retnStr .= " $hours hour" . pluralS($hours); }
+    if ($min)   { $retnStr .= " $min minute" . pluralS($min);   }
+    if ($sec)   { $retnStr .= " $sec second" . pluralS($sec);   }
+
+    return $retnStr;
+} // function
+
+function pluralS($intIn) {
+    // if $intIn > 1 return an 's', else return null string
+    if ($intIn > 1) {
+        return 's';
+    } else {
+        return '';
+    }
+} // function
+
+?&gt;
+
+
+</pre>
+<li><b>Save the DisplayUtils.php file in the htdocs folder of your Apache 2.2 installation.</b> </li>
+</ol>
+<br>
+
+
+<hr>
+<p><a href="#_top_">Back to Top</a></p>
+
+
+<a name="step3"></a><h2>Step 3: Run the code</h2>
+
+<p><b>The FindItemsAdvanced.php file is complete.</b> Open the file in a browser (<a href="http://localhost/FindItemsAdvanced.phpp" target="_blank">http://localhost/FindItemsAdvanced.php</a>).</p>
+
+<p>The result should look similar to the following:</p>
+
+<p><img src="PHP_SearchInterm_NV_XML.gif" alt="Simple search code"></p>
+
+<p>Congratulations! You have used the eBay Shopping API to find items on eBay and to display the results to a user.</p>
+
+<p>For information about the business benefits of using the eBay Developers Program and for other important information, please see the <a href="http://developer.ebay.com/quickstartguide/" target="_blank">Quick Start Guide</a>.
+
+<hr>
+<p><a href="#_topMySample.php_">Back to Top</a></p>
+<br>
+
+<a name="next"></a>
+<h2>Notes and Next Steps</h2>
+
+<p>Try different input parameters to change the search criteria, or modify the application to display additional fields. </p>
+<p>Exercise 1: Search for "Transformers."</p>
+<p>Exercise 2: Add an Endtime filter.</p>
+
+<h3>eBay Partner Network (eBay Affiliate Program)</h3>
+
+<p>You may be able to earn money with the eBay Partner Network (eBay Affiliate Program).
+For more information,
+visit the <a href="https://www.ebaypartnernetwork.com" target="_blank">eBay Partner Network</a>.
+This tutorial contains affiliate-related code. The code is commented-out because
+affiliate functionality is not available in the Sandbox environment. </p>
+
+<p>For information about the URL parameters for affiliate tracking, see the
+<a href="http://developer.ebay.com/DevZone/shopping/docs/Concepts/ShoppingAPI_FormatOverview.html#AffiliateURLParameters">Affiliate URL Parameters and HTTP Header Values</a> table.</p>
+
+
+<h3>Troubleshooting</h3>
+
+<p>If your code does not run, just use the FindItemsAdvanced.php file in <a href="PHP_SearchInterm_NV_XML.zip">PHP_SearchInterm_NV_XML.zip</a>.</p>
+
+<h3>About the Application</h3>
+
+<p>The sample provided with this tutorial was built and tested on a Windows 2000 Server platform using PHP 5.2.1 for Win32 and Apache 2.2.4 for Windows.</p>
+
+<h3>About the Call</h3>
+
+<p>See <a href="http://developer.ebay.com/DevZone/finding/CallRef/findItemsAdvanced.html">findItemsAdvanced</a> in the <i>Call Reference</i> for descriptions of the input and output parameters and additional information.</p>
+
+
+<hr>
+<p><a href="#_top_">Back to Top</a></p>
+<br>
+
+<a name="AdditionalResources"></a>
+<h1>Additional Resources</h1>
+
+  <p>More information about the eBay Finding API is available at these locations:</p>
+  <p><a href="http://developer.ebay.com/DevZone/finding/CallRef/index.html" target="_blank">Call Reference</a></p>
+  <p><a href="http://developer.ebay.com/DevZone/finding/Concepts/FindingAPIGuide.html" target="_blank">User Guide</a></p>
+  <p><a href="http://developer.ebay.com/DevZone/finding/Concepts/MakingACall.html" target="_blank">Making a Call</a></p>
+
+<hr>
+<p><a href="#_top_">Back to Top</a></p>
+<br>
+
+<a name="UserNotes"></a>
+<h1>User-Contributed Notes</h1>
+
+
+<table cellspacing="0" cellpadding="0" border="0" id="js">
+<tr>
+    <td rowspan="4" width="95%"><a name="userNotes"></a><script type="text/javascript" src="http://developer.ebay.com/external/module.ashx?type=comments"></script>&nbsp;</td>
+    <td height="5%"><a name="rating"></a><script type="text/javascript" src="http://developer.ebay.com/external/module.ashx?type=rating"></script>&nbsp;</td>
+</tr>
+<tr>
+    <td height="5%"><a name="bookmark"></a><script type="text/javascript" src="http://developer.ebay.com/external/module.ashx?type=bookmark"></script>&nbsp;</td>
+
+</tr>
+<tr>
+    <td height="5%"><a name="tagging"></a><script type="text/javascript" src="http://developer.ebay.com/external/module.ashx?type=tagging"></script>&nbsp;</td>
+</tr>
+<tr>
+    <td>&nbsp;</td>
+</tr>
+</table>
+<br />
+
+<hr>
+<p><a href="#_top_">Back to Top</a></p>
+
+<p align="center"><small>&copy; 2010 eBay Inc. All rights reserved. <br>
+eBay and the eBay logo are registered trademarks of eBay Inc. <br>
+All other brands are the property of their respective owners.</small></p>
+
+
+</body>
+</html>

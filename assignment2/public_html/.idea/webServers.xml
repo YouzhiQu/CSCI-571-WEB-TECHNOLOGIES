@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="ea49593e-521e-4c68-985e-2ca0469bf2d4" name="assignment" url="http://aludra.usc.edu">
+        <fileTransfer host="aludra.usc.edu" port="22" rootFolder="/home/scf-01/chen035/public_html" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

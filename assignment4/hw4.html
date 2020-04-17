@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body{
+            text-align: center;
+        }
+        #main-title {
+            margin-top: 10%;
+        }
+        #input-btn {
+            background-color: #eeeeee;
+            border-radius: 5px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form name="hw4-form" method="post" id="json-parse">
+        <h3 id="main-title">Enter URL for Trucking List JSON File</h3>
+        <input id="json-url" type="text" name="URL" maxlength="155" size="25" value="truckinglist.json">
+        <br />
+        <br />
+        <input id="input-btn" type="button" name="submit" value="Submit Query" onclick="view()" />
+    </form>
+    <script type="text/javascript">
+
+        function view() {
+            var url = document.getElementById("json-url").value;
+            var hWin = null;
+
+            function loadJSON(url) {
+                var xmlHttp = null;
+                if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlHttp = new XMLHttpRequest();
+                }
+                else { // code for IE6, IE5
+                    xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xmlHttp.open("GET", url, false);
+                xmlHttp.send();
+                var jsonObj = undefined;
+                if(xmlHttp.status >= 400 && xmlHttp.status < 500) {
+                    return 404;
+                }
+                try {
+                    jsonObj = JSON.parse(xmlHttp.responseText);
+                }catch (err) {
+                    return undefined;
+                }
+                return jsonObj;
+            }
+
+            var jsonObj = loadJSON(url);
+            if (typeof jsonObj == 'number') {
+                alert(url+ ' does not exist');
+                return;
+            }
+            if(!jsonObj) {
+                alert(url+" is not valid");
+                return;
+            }
+            var html_text = null;
+            if(window.ActiveXObject) { // if IE, simply execute script (due to async prop)
+                if(jsonObj.parseError.errorCode != 0) {
+                    var myErr = jsonObj.parseError;
+                    // generate error
+                    html_text = generateError();
+                    hWin = window.open("", "Error", "height=300, width=340");
+                    hWin.document.write(html_text);
+                }
+                else {
+                    html_text = generateHTML(jsonObj);
+                    if (!html_text) return;
+                    window.open("", "assignment4", "height=800, width=1050, scrollbars=yes");
+                }
+            }
+            else {
+                html_text=generateHTML(jsonObj);
+                if (!html_text) return;
+                hWin = window.open("", "assignment4", "height=800, width=1050, scrollbars=yes");
+            }
+            hWin.document.write(html_text);
+            hWin.document.close();
+        }
+
+        function generateHTML(jsonObj) {
+            var html_text = "<html><head>";
+            var css_style = "<style>.bold {font-weight: bold}</style>";
+            html_text += css_style;
+            html_text += "<title>Top Trucking Companies</title></head><body>";
+            var main_line = jsonObj.Mainline;
+            if (!main_line ) {
+                alert("no mainline");
+                return undefined;
+            }
+            var table = main_line["Table"];
+            if(!table) {
+                alert("no table in json file");
+                return undefined;
+            }
+            html_text += "<table border='2'>";
+            var header = table["Header"];
+            if(!header) {
+                alert("no header in json file");
+                return undefined;
+            }
+            var header_text = assembleHeader(header);
+            if (!html_text) return undefined;
+            html_text += header_text;
+
+            var body = table["Row"];
+            var body_text = assembleBody(body);
+            if (!body_text) {
+                alert("No trucking companies");
+                return undefined;
+            }
+            html_text += body_text;
+
+            html_text += "</table>";
+            html_text += "</body></html>";
+            return html_text;
+
+            function assembleHeader(header_obj) {
+                var header_list = header_obj.Data;
+                if (!header_list) return undefined;
+                var html_text = "<thead>";
+                html_text += "<tr>";
+                for (var i = 0; i < header_list.length; i++) {
+                    var header_elem = "<th>";
+                    if(header_list[i]) {
+                        header_elem += header_list[i];
+                    }
+                    header_elem += "</th>";
+                    html_text += header_elem;
+                }
+                html_text += "</tr>";
+                html_text += "</thead>";
+                return html_text;
+            }
+
+            function assembleBody(row_list) {
+                if(!row_list || !row_list instanceof Array) return undefined;
+                if (row_list.length == 0) return undefined;
+                var html_text = "<tbody>";
+                for(var i = 0; i < row_list.length; i++) {
+                    html_text += assembleRow(row_list[i]);
+                }
+                html_text += "</tbody>";
+                return html_text;
+            }
+
+            function assembleRow(row_obj) {
+                if (!row_obj) return undefined;
+                var html_text = "<tr>";
+                var keys = Object.keys(row_obj);
+                var row_list = ['', '', '', '', '',''];
+                for(var i = 0; i < keys.length; i++) {
+                    var key = keys[i];
+                    if(key == "Company") row_list[0] = buildCompanyCell(row_obj[key]);
+                    else if(key == "Services") row_list[1] = buildServicesCell(row_obj[key]);
+                    else if(key == "Hubs") row_list[2] = buildHubsCell(row_obj[key]);
+                    else if(key == "Revenue") row_list[3] = buildRevenue(row_obj[key]);
+                    else if(key == "HomePage") row_list[4] = buildHomePageCell(row_obj[key]);
+                    else if(key == "Logo") row_list[5] = buildLogoCell(row_obj[key]);
+                    else {
+                        //TODO
+                    }
+                }
+                for(var j = 0; j < row_list.length; j++) {
+                    html_text += row_list[j];
+                }
+                html_text += "</tr>";
+                return html_text;
+
+                function buildCompanyCell(text) {
+                    return buildSingleCell(text);
+                }
+
+                function buildServicesCell(text) {
+                    return buildSingleCell(text);
+                }
+
+                function buildHubsCell(hubs_obj) {
+                    if(!hubs_obj) return undefined;
+                    var keys = Object.keys(hubs_obj);
+                    var cell = "<td>";
+                    for (var i = 0; i < keys.length; i++) {
+                        var key = keys[i];
+                        var obj = hubs_obj[key];
+                        if(obj instanceof Array) {
+                            cell += buildHubCell(obj);
+                        }
+                    }
+                    cell += "</td>";
+                    return cell;
+                    function buildHubCell(list) {
+                        var obj = "<ul>";
+                        var first = true;
+                        for (var i = 0; i < list.length; i++) {
+                            if(first && list[i]) {
+                                obj += "<li class='" +"bold"+"'>" + list[i] + "</li>";
+                                first = false;
+                            }
+                            else if(list[i]) {
+                                obj += "<li>" + list[i] + "</li>";
+                            }
+                        }
+                        obj += "</ul>";
+                        return obj;
+                    }
+                }
+
+                function buildRevenue(text) {
+                    return buildSingleCell(text);
+                }
+
+                function buildHomePageCell(text) {
+                    var cell = "<td>";
+                    if(text) {
+                        cell += "<a href='" + text + "' >";
+                        cell += text;
+                        cell += "</a>";
+                    }
+                    cell += "</td>";
+                    return cell;
+                }
+
+                function buildLogoCell(text) {
+                    var cell = "<td>";
+                    if(text) {
+                        cell += "<img width='300' height='150' src='" + text + "'/>"
+                        cell += "</td>";
+                    }
+                    return cell;
+                }
+
+                function buildSingleCell(text) {
+                    var cell = "<td>";
+                    if(text) {
+                        cell += text;
+                        cell += "</td>";
+                    }
+                    return cell;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

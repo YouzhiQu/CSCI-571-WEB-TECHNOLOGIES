@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+.main {
+	width: 1024px;
+	height: 500px;
+	text-align: center;
+	margin:auto;
+}
+.input_form {
+	margin-top: 20%;
+}
+</style>	
+<script type="text/javascript">
+var jsonDoc;
+function loadJSON (url) {
+	try{
+		if(window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+			xmlhttp=new XMLHttpRequest();
+		}else {// code for IE6, IE5
+			xmlhttp=new ActiveXObject("Microsoft.XMLHTTP"); 
+		}
+		xmlhttp.open("GET",url,false); // "synchronous"
+		xmlhttp.send();
+		jsonDoc=JSON.parse(xmlhttp.responseText);
+		return jsonDoc; 	
+	} catch(err){
+		return;
+	}
+}
+function viewJSON(what){
+	var URL = what.URL.value;
+	if(URL == "") {
+		alert("json file name cannot be empty.");
+		return;
+	}
+	jsonObj = loadJSON(URL);
+	if(jsonObj == null) {
+		alert("json file not found.");
+		return;
+	}
+	if(window.ActiveXObject) {//if IE, simply execute script (due to async prop). 
+		if(jsonObj.parseError.errorCode != 0) {
+			var myErr = jsonObj.parseError;
+			generateError(jsonObj);
+			hWin = window.open("", "Error", "height=300,width=340");
+			hWin.document.write(html_text);
+		}else { 
+			generateHTML(jsonObj);
+			hWin = window.open("", "Assignment4", "height=800,width=600");
+			hWin.document.write(html_text);
+		}
+	}else {//else if FF, execute script once JSON object has loaded
+		jsonObj.onload=generateHTML(jsonObj);
+		hWin = window.open("", "Assignment4", "width=1024");
+		hWin.document.write(html_text); 
+	} 
+	hWin.document.close();
+}
+function generateHTML(jsonObj) {
+	root = jsonObj.DocumentElement;
+	html_text = "<html><head><title>JSON Parse Result</title></head><body>";
+	html_text += "<table border='2' style = 'width:100%;'>";
+	movie_header = jsonObj.Mainline.Table.Header.Data;
+	html_text += "<tbody>";
+	html_text += "<tr>";
+	x=135;
+	y=200;
+	var header_keys = Object.keys(movie_header);
+	var header_right = ["Title", "Year", "Info", "Worldwide Gross", "Wiki Page", "Logo"];
+
+	if(JSON.stringify(header_right) !== JSON.stringify(movie_header)){
+		alert("header data values are different.");
+	}
+	for(i = 0; i < header_keys.length; i++) {
+		header = movie_header[i];
+		html_text += "<th>" + header + "</th>";
+	}
+	html_text += "</tr>";
+	// output out the values
+	if(jsonObj.Mainline.Table.Row == undefined) {
+		alert("movies not found.");
+		html_text += "</tbody>";
+		html_text += "</table>";
+		html_text += "</body></html>";
+		return;
+	}
+	movie_list = jsonObj.Mainline.Table.Row; // an array of movies
+	for(i = 0; i < movie_list.length; i++) {//do for all movies (one per row)
+		movieNodeList = movie_list[i]; //get properties of a movie (an object)
+		html_text += "<tr height='135px'>"; //start a new row of the output table
+		var movie_keys = Object.keys(movieNodeList);
+		for(j = 0; j < movie_keys.length; j++) {
+			prop = movie_keys[j];
+			if(movie_keys[j] == "Logo") {//handle images separately
+				if(movieNodeList[prop] != "") {
+					html_text += "<td><img src='"+ movieNodeList[prop] +"' width='"+ x +"' height='"+ y +"'></td>";
+				}else {
+					html_text += "<td></td>";
+				}
+				
+			} else if (movie_keys[j] == "HomePage") {
+				html_text += "<td nowrap><a href='"+ movieNodeList[prop] +"' > "+ movieNodeList[prop] +"</a></td>";
+			} else if (movie_keys[j] == "Hubs") {
+				var movie_hub = movieNodeList[prop]["Hub"];
+				html_text += "<td><ul>";
+				for (var k = 0; k < movie_hub.length; k++){
+					if(k == 0) {
+						html_text += "<li><b>"+ movie_hub[0] +"</b></li>";
+					}else {
+						html_text += "<li>"+ movie_hub[k] +"</li>";
+					}
+				}
+				html_text += "</ul></td>";
+			}else {
+				html_text += "<td>"+ movieNodeList[prop] +"</td>";
+			}
+		}
+		html_text += "</tr>";
+	}
+	html_text += "</tbody>";
+	html_text += "</table>";
+	html_text += "</body></html>";
+}
+</script>
+</head>
+<body>
+	<div class="main">
+		<div class="input_form">
+			<h1>Enter URL for Highest-grossing films List JSON File</h1>
+			<form name="myform" method="POST" id="location">
+				<input type="text" name="URL" maxlength="150" size="30" /><br/>
+				<br/>
+				<input type="button" name="submit" value="Submit Query" onClick="viewJSON(this.form)" />
+			</form>
+		</div>
+	</div>
+</bod50
+</html>
